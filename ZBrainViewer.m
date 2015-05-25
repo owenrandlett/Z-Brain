@@ -1156,14 +1156,18 @@ while true
         ClearMasks = 0;
     end
     
-    if GetMaskName == 1 && SectDim == 0
+    if GetMaskName == 1 
         
-        try
+        if  SectDim ~= 0
+         warning ('Can only find regions in coronal view')
+         GetMaskName = 0;
+        else
+      
             figure(imFig)
             ClickText = text(0.2,0.9, 'click on the region of interest', 'Units', 'Normalized', 'Color', [1,1,1], 'FontUnits', 'Normalized', 'FontSize', 0.05);
             
             
-            [gInputX, gInputY] = ginput(1);
+            [gInputX, gInputY] = ginput(1)
             delete(ClickText)
             
             
@@ -1177,32 +1181,28 @@ while true
                 
             else
                 
-                maskX = round((gInputX - SlicePadWidth));
-                maskY = round(gInputY);
+                maskX = round(gInputX - SlicePadWidth); % correct for image padding
+                maskY = round(gInputY - SlicePadHeight);
+               
+                maskXNorm = round(maskX*(height/SliceWidth)); % get dimensions back to original image size
+                maskYNorm = round(maskY*(width/SliceHeight));
+                maskIDSlice = false(width, height);
                 
-                maskIDSlice = false(SliceHeight, SliceWidth);
-                
-                maskIDSlice(maskY, maskX) = 1;
-                
-                maskIDSlice = imresize(maskIDSlice, [width, height], 'nearest');
-                
+                maskIDSlice(maskYNorm, maskXNorm) = 1;
+             
                 
             end
             
-            maskIDSlice = rot90(maskIDSlice, 3);
+            maskIDSlice = rot90(maskIDSlice, 3); % rotate back to original orientation
             maskIDMatrix = false(height, width, Zs);
             
-            maskIDMatrix(:,:,Sect) = maskIDSlice;
-            maskIDInd = reshape(maskIDMatrix, [height*width*Zs, 1]);
+            maskIDMatrix(:,:,Sect) = maskIDSlice; % put slice into correct Z plane
+            maskIDInd = reshape(maskIDMatrix, [height*width*Zs, 1]); % get vector like in 'MaskDatabase' variable
             
             maskIDVec = full(MaskDatabase(maskIDInd, :));
             
             maskIDs = find(maskIDVec == 1);
             
-            %FoundText = text(0.2,0.9, ['Found ', num2str(length(maskIDs)),
-            %' anatomical masks in this region ... Loading them now...'],
-            %'Units', 'Normalized', 'Backgroundcolor', [0,0,0], 'Color',
-            %[1,1,1], 'FontUnits', 'Normalized', 'FontSize', 0.05);
             
             maskIDSize = sum(MaskDatabase(:,maskIDs), 1);
             
@@ -1257,15 +1257,8 @@ while true
             
             DisplaySlice = 1;
             GetMaskName = 0;
-            %delete(FoundText)
-        catch
-            warning('Input error, please select again')
-            figure(imFig)
-            ErrorText = text(0.2,0.9, 'OOPS! Error, press "m" to try again...', 'Units', 'Normalized', 'BackgroundColor', [0,0,0], 'Color', [1,1,1], 'FontUnits', 'Normalized', 'FontSize', 0.05);
-            pause(3)
-            delete(ErrorText)
-            GetMaskName = 0;
-            
+       
+       
         end
         
     end
@@ -2241,7 +2234,7 @@ if event.Character == 'o'
 end
 
 
-if event.Character == 'm'
+if event.Character == 'm' % click to find masks
     ClearMasks = 1;
     GetMaskName = 1;
     
