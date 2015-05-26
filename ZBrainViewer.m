@@ -1167,7 +1167,7 @@ while true
             ClickText = text(0.2,0.9, 'click on the region of interest', 'Units', 'Normalized', 'Color', [1,1,1], 'FontUnits', 'Normalized', 'FontSize', 0.05);
             
             
-            [gInputX, gInputY] = ginput(1)
+            [gInputX, gInputY] = ginput(1);
             delete(ClickText)
             
             
