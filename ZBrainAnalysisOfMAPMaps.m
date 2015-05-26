@@ -51,7 +51,7 @@
 % they are not in Matlab's path.
 %
 %
-function ZBrainAnalysisOfMAPMaps_edit(CalculateLabels)
+function ZBrainAnalysisOfMAPMaps(CalculateLabels)
 
 
 if nargin ~=1
