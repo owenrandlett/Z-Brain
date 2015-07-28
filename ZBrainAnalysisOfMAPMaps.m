@@ -1,3 +1,9 @@
+% THis function is the same as 'ZBrainAnalysisOfMAPMAps.m', but it uses the
+% non standard function 'uipickfiles.m' (writen by Douglas Schwartz) to select 
+% multiple stacks to analyze all at once. 
+
+% uipick files was downloaded from: http://www.mathworks.com/matlabcentral/fileexchange/10867-uipickfiles--uigetfile-on-steroids
+
 % This function will quantify the ammount of 'significant delta median'
 % from a MAP-Map signal in each 3D ROI in the Z-Brain database. These are
 % then ranked, treating positive (activation) and negative (supression)
@@ -10,6 +16,8 @@
 % Numbers > 1 indicate enrichement of the label signal overlapping with the
 % activity pattern. This can help generate hypotheses as to the relevant
 % cell types.
+
+% This function uses a non-standard
 
 %%%%%% Input arguments
 
@@ -64,7 +72,7 @@ XYRez = 1.65; % the resolution of MAP-Maps
 ZRez = 3.45;
 
 % point to the delta medians file for analysis
-[DeltaMedianFilename, DeltaMedianPath] = uigetfile('*Medians.tif', 'Select the significant delta median file for analysis');
+[DeltaMedianFilename, DeltaMedianPath] = uigetfile('*.tif', 'Select the significant delta median file for analysis');
 
 
 try % if we are already in the correct directory, load in the mask database files. The 'AnatomyLabelDatabaseDownsampled.hdf5' file also needs to be in this directory
