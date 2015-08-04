@@ -1,9 +1,3 @@
-% THis function is the same as 'ZBrainAnalysisOfMAPMAps.m', but it uses the
-% non standard function 'uipickfiles.m' (writen by Douglas Schwartz) to select 
-% multiple stacks to analyze all at once. 
-
-% uipick files was downloaded from: http://www.mathworks.com/matlabcentral/fileexchange/10867-uipickfiles--uigetfile-on-steroids
-
 % This function will quantify the ammount of 'significant delta median'
 % from a MAP-Map signal in each 3D ROI in the Z-Brain database. These are
 % then ranked, treating positive (activation) and negative (supression)
@@ -17,13 +11,11 @@
 % activity pattern. This can help generate hypotheses as to the relevant
 % cell types.
 
-% This function uses a non-standard
-
 %%%%%% Input arguments
 
 % CalculateLabels
 %%%% 1 (default), overlap with antomy labels will be calulcated
-%%%% 0 - this calculation will be skipped
+%%%% 0 - this calculation will be skipped and only tables output
 
 %%%%%% OUTPUT
 
@@ -56,10 +48,13 @@
 % 'MaskDatabaseDownsampled.mat', and a '*SignificantDeltaMedians.tif'
 % MAP-Map image output from the 'MakeTheMAPMap.m' function. The funciton
 % starts with a promt to direct towards the MAPMap, and the other files if
-% they are not in Matlab's path.
+% they are not in Matlab's path. If the downsampled database files are not there, they will be
+% created locally. 
 %
 %
-function ZBrainAnalysisOfMAPMaps(CalculateLabels)
+%
+%
+function ZBrainAnalysisOfMAPMaps_addMakeDownsample(CalculateLabels)
 
 
 if nargin ~=1
@@ -84,8 +79,14 @@ catch
     MaskDatabasePath = uigetdir(pwd,'Point to the folder with the ZBrain files'); %'MaskDatabaseDownsampled.mat' and 'AnatomyLabelDatabaseDownsampled.hdf5' need to be in this folder
     cd(MaskDatabasePath);
     addpath(MaskDatabasePath);
+    try
     load('MaskDatabaseDownsampled.mat');
+    catch
+        MakeDownsampledFiles(MaskDatabasePath);
+        load('MaskDatabaseDownsampled.mat');
+    end
 end
+
 
 % remove the eyes since Nacre fish dont show real signal there.
 for j = length(MaskDatabaseNames):-1:1
@@ -407,4 +408,109 @@ beep on; beep
 close all
 clear all
 
+end
+
+function MakeDownsampledFiles(MaskDatabasePath) 
+
+% if we dont already have the downsampled files at MAP-Map resolution, make them from the full resolution files
+    
+    
+% Since MAP-Maps are at a downsample resolution from the Z-Brain atlas, we make a downsampled version of the Z-Brain to analyze the MAP-Maps. This saves having to resize everything every time you want to analyze a MAP-Map. 
+% Here we make the Downsampled Mask database. We also make the masks for
+% the 50 pixels surrounding the images which is used as a normalization for the calculation of
+% the label signal enrichemnt in the MAP-Map activated areas. 
+
+DownsampHeight = 679; % the resolution of MAP-Maps
+DownsampWidth = 300;
+DownsampZs = 80;
+
+% start with the mask database
+cd(MaskDatabasePath)
+load('MaskDatabase.mat')
+nMasks = size(MaskDatabase, 2);
+MaskDatabaseDownsamp = false(DownsampHeight*DownsampWidth*DownsampZs, nMasks);
+MaskDatabaseOutlinesDownsamp = false(DownsampHeight*DownsampWidth*DownsampZs, nMasks);
+MaskDatabase50OutsideDownsamp = false(DownsampHeight*DownsampWidth*DownsampZs, nMasks);
+
+
+MaskDownXY = false(DownsampHeight, DownsampWidth, Zs); % preallocate temporary downsampling stacks
+MaskDownZ = false(DownsampHeight, DownsampWidth, DownsampZs);
+
+wait = waitbar(0, 'making the downsampled masks.. this will take time but ony has to be done once!');
+figure,
+for n = 1:nMasks
+    MaskTemp = reshape(full(MaskDatabase(:,n)), [height, width, Zs]);
+    
+    for z = 1:Zs % shrink X/Y
+        MaskDownXY(:,:,z) = imresize(squeeze(MaskTemp(:,:,z)), [DownsampHeight, DownsampWidth], 'method', 'nearest');
+    end
+    
+    for w = 1:DownsampWidth % shrink Z
+        MaskDownZ(:,w,:) = imresize(squeeze(MaskDownXY(:,w,:)), [DownsampHeight, DownsampZs], 'method', 'nearest');
+    end
+    
+    MaskDatabaseDownsamp(:,n) = reshape(MaskDownZ, [DownsampHeight*DownsampWidth*DownsampZs, 1]);
+    
+    OutlineTemp = bwdist(MaskDownZ) == 1;
+    
+    MaskDatabaseOutlinesDownsamp(:,n) = reshape(OutlineTemp, [DownsampHeight*DownsampWidth*DownsampZs, 1]);
+    
+      
+    imshowpair(sum(MaskDownZ, 3)./max(sum(sum(sum(MaskDownZ, 3)))), sum(OutlineTemp, 3)./max(sum(sum(sum(OutlineTemp, 3)))))
+    
+    mask50Outside = MaskDownZ;  % this will be the mask that has the 50 pixel ring around the actual mask, which is used to normalize the transgene signals to look for enrichement within the ROIs
+    
+    for z=1:DownsampZs
+    mask50Outside(:,:,z) = bwdist(MaskDownZ(:,:,z)) <= 50; % we will use the space outside the mask within 50 pixels to normalize the transgene signals
+    end
+    mask50Outside = mask50Outside - MaskDownZ;
+    
+    MaskDatabase50OutsideDownsamp(:,n) = reshape(mask50Outside, [DownsampHeight*DownsampWidth*DownsampZs, 1]);
+            
+    waitbar(n/nMasks)
+end
+close(wait)
+
+close all
+
+MaskDatabaseDownsamp = sparse(MaskDatabaseDownsamp);
+MaskDatabaseOutlinesDownsamp = sparse(MaskDatabaseOutlinesDownsamp);
+MaskDatabase50OutsideDownsamp = sparse(MaskDatabase50OutsideDownsamp);
+
+cd(MaskDatabasePath);
+save('MaskDatabaseDownsampled.mat', 'MaskDatabaseNames', 'MaskDatabaseDownsamp', 'MaskDatabaseOutlinesDownsamp', 'MaskDatabase50OutsideDownsamp', 'DateCreated');
+
+
+try % check to see if we already have the downsampled labels
+StackDatabaseInfo = h5info('AnatomyLabelDatabaseDownsampled.hdf5');
+catch % if not, we make them
+
+StackDatabaseInfo = h5info('AnatomyLabelDatabase.hdf5');
+StackDownXY = uint16(zeros(DownsampHeight, DownsampWidth, Zs)); % preallocate temporary downsampling stacks
+StackDownZ = uint16(zeros(DownsampHeight, DownsampWidth, DownsampZs));
+
+
+wait = waitbar(0, 'making the downsampled labels.. this will take time but ony has to be done once!');
+
+nStacks = length(StackDatabaseInfo.Datasets);
+for n = 1:nStacks            
+    datasetName = strcat('/', StackDatabaseInfo.Datasets(n).Name);
+    StackTemp = h5read('AnatomyLabelDatabase.hdf5', datasetName);    
+    for z = 1:Zs % shrink X/Y
+        StackDownXY(:,:,z) = imresize(squeeze(StackTemp(:,:,z)), [DownsampHeight, DownsampWidth], 'method', 'bicubic');
+    end
+    
+    for w = 1:DownsampWidth % shrink Z
+        StackDownZ(:,w,:) = imresize(squeeze(StackDownXY(:,w,:)), [DownsampHeight, DownsampZs], 'method', 'bicubic');
+    end
+    
+    h5create('AnatomyLabelDatabaseDownsampled.hdf5', datasetName, [DownsampHeight, DownsampWidth, DownsampZs], 'Datatype', 'uint16', 'ChunkSize', [DownsampHeight, DownsampWidth, 1], 'deflate', 9);
+    h5write('AnatomyLabelDatabaseDownsampled.hdf5', datasetName, StackDownZ);
+       
+    waitbar(n/nStacks)
+end
+    close(wait);
+    clear all;
+
+end
 end
