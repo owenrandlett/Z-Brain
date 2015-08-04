@@ -485,7 +485,7 @@ end
 
     progressbar(nStack/nStacks)
 end
-close(wait)
+
 
 beep on; beep
 %
@@ -2519,4 +2519,6 @@ else
     timestr = sprintf('%d sec', s);
 end
 
+end
+end
 end
