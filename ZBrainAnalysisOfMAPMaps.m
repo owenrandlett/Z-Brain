@@ -54,7 +54,7 @@
 %
 %
 %
-function ZBrainAnalysisOfMAPMaps_addMakeDownsample(CalculateLabels)
+function ZBrainAnalysisOfMAPMaps(CalculateLabels)
 
 
 if nargin ~=1
