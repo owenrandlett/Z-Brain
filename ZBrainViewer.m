@@ -326,7 +326,7 @@ if ViewerMode == 1; % load in the new stack, either to RGB or grey channel. upsi
         gStackOriginal= zeros(heightTiff, widthTiff, ZsTiff);
         bStackOriginal= zeros(heightTiff, widthTiff, ZsTiff);
         
-        wait = waitbar(0, 'Loading MAP-Map', 'Color', [0 1 0]);
+        wait = waitbar(0, 'Loading 3-color stack', 'Color', [0 1 0]);
         set(findobj(wait,'type','patch'), ...
             'edgecolor','m','facecolor','m')
         
@@ -337,50 +337,58 @@ if ViewerMode == 1; % load in the new stack, either to RGB or grey channel. upsi
             bStackOriginal(:,:,Sect) = squeeze(TempSlice(:,:,3));
             waitbar(Sect/ZsTiff)
         end
+        close(wait);
         
         StackMax = max(max([rStackOriginal(:), gStackOriginal(:), bStackOriginal(:)]));
         
-        rStackOriginal = 65535.*rStackOriginal./StackMax;
-        gStackOriginal = 65535.*gStackOriginal./StackMax;
-        bStackOriginal = 65535.*bStackOriginal./StackMax;
+        if ZsTiff ~=Zs || heightTiff ~= height || widthTiff ~= width
+            rStackOriginal = 65535.*rStackOriginal./StackMax;
+            gStackOriginal = 65535.*gStackOriginal./StackMax;
+            bStackOriginal = 65535.*bStackOriginal./StackMax;
         
-        close(wait)
         
-        wait = waitbar(0, 'UP-Sizing new stack to fit Anatomy Database', 'Color', [0 1 0]);
-        set(findobj(wait,'type','patch'), ...
-            'edgecolor','m','facecolor','m')
-        nLoops = ZsTiff + width;
         
-        rStackTemp = zeros(height, width, ZsTiff);
-        gStackTemp = zeros(height, width, ZsTiff);
-        bStackTemp = zeros(height, width, ZsTiff);
         
-        for Sect = 1:ZsTiff
-            rStackTemp(:,:,Sect) = imresize(rStackOriginal(:,:,Sect), [height, width], 'method', 'nearest');
-            gStackTemp(:,:,Sect) = imresize(gStackOriginal(:,:,Sect), [height, width], 'method', 'nearest');
-            bStackTemp(:,:,Sect) = imresize(bStackOriginal(:,:,Sect), [height, width], 'method', 'nearest');
-            waitbar(Sect/nLoops)
+            wait = waitbar(0, 'UP-Sizing new stack to fit Anatomy Database', 'Color', [0 1 0]);
+            set(findobj(wait,'type','patch'), ...
+                'edgecolor','m','facecolor','m')
+            nLoops = ZsTiff + width;
+            
+            rStackTemp = zeros(height, width, ZsTiff);
+            gStackTemp = zeros(height, width, ZsTiff);
+            bStackTemp = zeros(height, width, ZsTiff);
+            
+            for Sect = 1:ZsTiff
+                rStackTemp(:,:,Sect) = imresize(rStackOriginal(:,:,Sect), [height, width], 'method', 'nearest');
+                gStackTemp(:,:,Sect) = imresize(gStackOriginal(:,:,Sect), [height, width], 'method', 'nearest');
+                bStackTemp(:,:,Sect) = imresize(bStackOriginal(:,:,Sect), [height, width], 'method', 'nearest');
+                waitbar(Sect/nLoops)
+            end
+            
+            rStack = zeros(height, width, Zs);
+            gStack = zeros(height, width, Zs);
+            bStack = zeros(height, width, Zs);
+            
+            
+            for w = 1:width
+                rStack(:,w,:) = imresize(squeeze(rStackTemp(:, w, :)), [height, Zs], 'method', 'nearest');
+                gStack(:,w,:) = imresize(squeeze(gStackTemp(:, w, :)), [height, Zs], 'method', 'nearest');
+                bStack(:,w, :) = imresize(squeeze(bStackTemp(:, w, :)), [height, Zs], 'method', 'nearest');
+                waitbar((ZsTiff + w)/nLoops)
+            end
+            
+            rStack = uint16(rStack);
+            gStack = uint16(gStack);
+            bStack = uint16(bStack);
+            
+            
+            
+            close(wait)
+        else
+            rStack = 65535.*rStackOriginal./StackMax;
+            gStack = 65535.*gStackOriginal./StackMax;
+            bStack = 65535.*bStackOriginal./StackMax;
         end
-        
-        rStack = zeros(height, width, Zs);
-        gStack = zeros(height, width, Zs);
-        bStack = zeros(height, width, Zs);
-        
-        
-        for w = 1:width
-            rStack(:,w,:) = imresize(squeeze(rStackTemp(:, w, :)), [height, Zs], 'method', 'nearest');
-            gStack(:,w,:) = imresize(squeeze(gStackTemp(:, w, :)), [height, Zs], 'method', 'nearest');
-            bStack(:,w, :) = imresize(squeeze(bStackTemp(:, w, :)), [height, Zs], 'method', 'nearest');
-            waitbar((ZsTiff + w)/nLoops)
-        end
-        
-        rStack = uint16(rStack);
-        gStack = uint16(gStack);
-        bStack = uint16(bStack);
-        
-
-        
-        close(wait)
         
         clear pERKSlice rStackOriginal gStackOriginal bStackOriginal rStackTemp gStackTemp bStackTemp
     end
@@ -944,7 +952,7 @@ figHeight = floor(figSizeVec(4));
 CurrentImage = imshow(zeros(figHeight, figWidth)); % for some reason this call shifts the figure, put it back up
 set(imFig, 'units', 'normalized');
 set(imFig, 'outerposition', [0 0.3 1 0.70])
-set(CurrentImage,  'erasemode', 'none');
+%set(CurrentImage,  'erasemode', 'none');
 set(imFig, 'units', 'pixels');
 
 
