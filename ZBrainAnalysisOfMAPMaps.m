@@ -40,11 +40,11 @@ function ZBrainAnalysisOfMAPMaps(CalculateLabels, LeftVsRight)
 % 0 - this calculation will be skipped and mask signals quantified.
 
 %%% LeftVsRight
-% 1 - Calculate signals on Left Vs Right separately, and output the signals
-%       in each mask
+
 % 0 (default) - Do not separate left and right side of the brain, look at
 %       whole mask
-
+% 1 - Additionally calculate signals on Left Vs Right separately, and output the signals
+%       in each mask
 
 
 %%%%%% OUTPUT
@@ -142,7 +142,7 @@ catch
     try
         load('MaskDatabaseDownsampled.mat');
     catch
-        MakeDownsampledFiles(MaskDatabasePath);
+        MakeDownsampledFiles(MaskDatabasePath); % if we dont aready have the downsampled database, make it. 
         load('MaskDatabaseDownsampled.mat');
     end
 end
@@ -164,7 +164,8 @@ for j = 1:length(MaskDatabaseNames)
     MaskDatabaseNames{j} = strrep(MaskDatabaseNames{j},',', '-');
 end
 
-progressbar('Progress through different files')
+waitFiles = waitbar(0, 'Progress through the files');
+
 for nFile = 1:nFiles;
     
     [DeltaMedianPath,name,ext] = fileparts(DeltaMedianFiles{nFile});
@@ -179,12 +180,40 @@ for nFile = 1:nFiles;
     width = info(1).Width;
     height = info(1).Height;
     
-    DeltaMedianImage = uint16(zeros(height, width, Zs, 3));
+    if height ~= 679
+        error('Image is wrong size, needs to be height/width/Zs = 679/300/80')
+    end
     
+    
+    
+    DeltaMedianImage = uint16(zeros(height, width, Zs, 3));
+    if Zs == 80
+         DeltaMedianImage = uint16(zeros(height, width, Zs, 3));
     for z = 1:Zs
         DeltaMedianImage(:,:,z,:) = imread(DeltaMedianFilename, z);
     end
+    end
     
+    if Zs == 240; % account for if the stack is alternating planes (green1, red1, blue1, green2, ...)
+         DeltaMedianImage = uint16(zeros(height, width, 80, 3));
+        k = 1;
+        for z = 1:3:238
+            DeltaMedianImage(:,:,k,1) = imread(DeltaMedianFilename, z);
+            k = k+1;
+        end
+        k = 1;
+        for z = 2:3:239
+            DeltaMedianImage(:,:,k,2) = imread(DeltaMedianFilename, z);
+            k = k+1;
+        end
+        k = 1;
+        for z = 3:3:240
+            DeltaMedianImage(:,:,k,3) = imread(DeltaMedianFilename, z);
+            k = k+1;
+        end
+        Zs = 80; % actual number of planes
+    end
+            
     %
     % To find the most relevant ROIs we determine the 'significant delta
     % median' signal within each roi. we remove the top ROI and re-run the
@@ -229,7 +258,7 @@ for nFile = 1:nFiles;
     NegLeft = zeros(height, width, Zs);
     
     
-    waitFiles = waitbar(0, 'Progress through the files');
+    
     
     for i = 1:nMasks
         
@@ -336,11 +365,63 @@ for nFile = 1:nFiles;
         NegResults(i,2) = {num2str(SortedNegativeSignalInMasks(i))};
     end
     %
+    
+    
+    
+    
+    if LeftVsRight % if we have the left vs right files, sort and write them now. 
+        
+     [SortedPositiveSignalInMasksLeft, SortedPositiveSignalInMasksIXLeft] = sort(SignalsInMasksLeft(:,1), 'descend');
+    [SortedNegativeSignalInMasksLeft, SortedNegativeSignalInMasksIXLeft] = sort(SignalsInMasksLeft(:,2), 'descend');
+    
+    % get the names associated with each ROI
+    
+    for i = 1:nMasks
+        ind = SortedPositiveSignalInMasksIXLeft(i);
+        PosResultsLeft(i,1) = MaskDatabaseNames(ind);
+    end
+    
+    for i = 1:nMasks
+        ind = SortedNegativeSignalInMasksIXLeft(i);
+        NegResultsLeft(i,1) = MaskDatabaseNames(ind);
+    end
+    
+    % in the second column we place the average signal per pixel in that region
+    for i = 1:nMasks
+        PosResultsLeft(i,2) = {num2str(SortedPositiveSignalInMasksLeft(i))};
+        NegResultsLeft(i,2) = {num2str(SortedNegativeSignalInMasksLeft(i))};
+    end
+        
+     [SortedPositiveSignalInMasksRight, SortedPositiveSignalInMasksIXRight] = sort(SignalsInMasksRight(:,1), 'descend');
+    [SortedNegativeSignalInMasksRight, SortedNegativeSignalInMasksIXRight] = sort(SignalsInMasksRight(:,2), 'descend');
+    
+    % get the names associated with each ROI
+    
+    for i = 1:nMasks
+        ind = SortedPositiveSignalInMasksIXRight(i);
+        PosResultsRight(i,1) = MaskDatabaseNames(ind);
+    end
+    
+    for i = 1:nMasks
+        ind = SortedNegativeSignalInMasksIXRight(i);
+        NegResultsRight(i,1) = MaskDatabaseNames(ind);
+    end
+    
+    % in the second column we place the average signal per pixel in that region
+    for i = 1:nMasks
+        PosResultsRight(i,2) = {num2str(SortedPositiveSignalInMasksRight(i))};
+        NegResultsRight(i,2) = {num2str(SortedNegativeSignalInMasksRight(i))};
+    end
+        
+        
+    end
+    
+    
     if ~CalculateLabels % if we arent calculating overlap with labels, write the tables now. 
         
         cd(DeltaMedianPath);
        
-         fid = fopen(strcat(strrep(DeltaMedianFilename, 'SignificantDeltaMedians.tif', ''), 'PositiveSignalResults_noLabelOverlap.csv'),'w');
+        fid = fopen(strcat(strrep(DeltaMedianFilename, 'SignificantDeltaMedians.tif', ''), 'PositiveSignalResults_noLabelOverlap.csv'),'w');
         numColumns = size(PosResults,2);
         numRows = size(PosResults,1);
         fprintf(fid,'%s\n','ROI name, Signal in ROI');
