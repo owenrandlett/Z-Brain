@@ -1,5 +1,7 @@
 # Z-Brain
 
+This repository contains the analysis scripts and viewer function for the Z-Brain and MAP-Mapping methods from Randlett et al., 2015 ::  http://www.nature.com/nmeth/journal/vaop/ncurrent/full/nmeth.3581.html
+
 The Z-Brain
 
 The Z-Brain was built as a neuroanatomical reference atlas for the zebrafish neuroscience community. It was built upon a 6dpf Nacre/mitfa mutant larvae stained with anti-ERK. By registering fish stained with different anatomical markers (antibody stains, transgenes, dye fills) to this common reference brain, we have created a platform where many labels can be explored in the same reference space. We currently have 29 labels registered to the atlas. For each label we register multiple fish, and then represent that label as the mean across fish, allowing for visualization of the average positioning and staining of these neurons or features. Based on these markers, we have also segmented to brain into 294 regions.
@@ -33,3 +35,5 @@ MAP-Mapping
 In order to create MAP-Maps from pERK and tERK stained data, data must first be registered to the Z-Brain reference brain stack (http://engertlab.fas.harvard.edu/Z-Brain/Downloads/Ref20131120pt14pl2.nrrd). To do this we use CMTK (https://www.nitrc.org/projects/cmtk/).
 
 Once the data is registered, you can use the 'MakeTheMAPMap.m' function to create the activity map. Then the 'ZBrainAnalysisOfMAPMaps.m' function can be used to analyze MAP-Maps using the Z-Brain. 
+
+Reference:
