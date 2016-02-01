@@ -212,7 +212,30 @@ end
 
 % get the HDF5 file info
 hdf5fileInfo = h5info('AnatomyLabelDatabase.hdf5');
+
+
 filesLabels = hdf5fileInfo.Datasets;
+
+
+for i =1:length(filesLabels)
+     filesLabels(i).hdf5Name = 'AnatomyLabelDatabase.hdf5';
+end
+
+% find any other HDF5 files, not including AnatomyLabelDatabaseDownsampled
+
+OtherHDF5Files = dir('*.hdf5');
+
+
+for i = length(OtherHDF5Files):-1:1
+    if strcmp(OtherHDF5Files(i).name, 'AnatomyLabelDatabase.hdf5') ==0 && strcmp(OtherHDF5Files(i).name, 'AnatomyLabelDatabaseDownsampled.hdf5') == 0
+        hdf5fileInfo = h5info(OtherHDF5Files(i).name);
+        newfilesLabels = hdf5fileInfo.Datasets;
+            for j = 1:length(newfilesLabels)
+                newfilesLabels(j).hdf5Name = OtherHDF5Files(i).name;
+            end
+       filesLabels = [filesLabels; newfilesLabels];
+    end
+end
 
 ImageSize = filesLabels(1).Dataspace.Size;
 height = ImageSize(1);
@@ -230,15 +253,16 @@ for i = 1:length(filesLabels)+1
         popupnamesLabels = '-';
     else
         FullName = filesLabels(i-1).Name;
-        EndPos = strfind(filesLabels(i-1).Name, '_');
+       
+        EndPos = strfind(filesLabels(i-1).Name, 'dpf') - 2;
         if numel(EndPos) > 0
             TruncName = FullName(1:EndPos-1);
         else
-            TruncName = FullName;
+            TruncName = FullName(1:end);
         end
         popupnamesLabels = strcat(popupnamesLabels, '|', TruncName);
         
-        if strfind(filesLabels(i-1).Name, 'Elavl3-H2BRFP') == 1
+        if strfind(filesLabels(i-1).Name, 'Elavl3-H2BRFP_6dpf_MeanImageOf10Fish') == 1
             H2BStack = i;
         end
     end
@@ -1400,7 +1424,7 @@ while true
                         'edgecolor','k','facecolor','k')
                     
                     waitbar(0.1)
-                    greyStack = h5read('AnatomyLabelDatabase.hdf5', strcat('/', filesLabels(greyVal - 1).Name));
+                    greyStack = h5read(filesLabels(greyVal - 1).hdf5Name, ['/', filesLabels(greyVal - 1).Name]);
                     
                     waitbar(0.75)
                     
@@ -1429,7 +1453,7 @@ while true
                     'edgecolor','r','facecolor','r')
                 
                 waitbar(0.1)
-                rStack = h5read('AnatomyLabelDatabase.hdf5', strcat('/', filesLabels(rVal - 1).Name));
+                rStack = h5read(filesLabels(rVal - 1).hdf5Name, ['/',  filesLabels(rVal - 1).Name]);
                 
                 waitbar(0.75)
                 
@@ -1458,7 +1482,7 @@ while true
                     'edgecolor','g','facecolor','g')
                 
                 waitbar(0.1)
-                gStack = h5read('AnatomyLabelDatabase.hdf5', strcat('/', filesLabels(gVal - 1).Name));
+                gStack = h5read(filesLabels(gVal - 1).hdf5Name, ['/',  filesLabels(gVal - 1).Name]);
                 
                 waitbar(0.75)
                 
@@ -1488,7 +1512,7 @@ while true
                     'edgecolor','b','facecolor','b')
                 
                 waitbar(0.1)
-                bStack = h5read('AnatomyLabelDatabase.hdf5', strcat('/', filesLabels(bVal - 1).Name));
+                bStack = h5read(filesLabels(bVal - 1).hdf5Name, ['/',  filesLabels(bVal - 1).Name]);
                 
                 waitbar(0.75)
                 
@@ -1517,7 +1541,7 @@ while true
                     'edgecolor','c','facecolor','c')
                 
                 waitbar(0.1)
-                cStack = h5read('AnatomyLabelDatabase.hdf5', strcat('/', filesLabels(cVal - 1).Name));
+                cStack = h5read(filesLabels(cVal - 1).hdf5Name, ['/',  filesLabels(cVal - 1).Name]);
                 
                 waitbar(0.75)
                 
@@ -1546,7 +1570,7 @@ while true
                     'edgecolor','m','facecolor','m')
                 
                 waitbar(0.1)
-                mStack = h5read('AnatomyLabelDatabase.hdf5', strcat('/', filesLabels(mVal - 1).Name));
+                mStack = h5read(filesLabels(mVal - 1).hdf5Name, ['/',  filesLabels(mVal - 1).Name]);
                 
                 waitbar(0.75)
                 
@@ -1575,7 +1599,7 @@ while true
                     'edgecolor','y','facecolor','y')
                 
                 waitbar(0.1)
-                yStack = h5read('AnatomyLabelDatabase.hdf5', strcat('/', filesLabels(yVal - 1).Name));
+                yStack = h5read(filesLabels(yVal - 1).hdf5Name, ['/',  filesLabels(yVal - 1).Name]);
                 
                 waitbar(0.75)
                 
