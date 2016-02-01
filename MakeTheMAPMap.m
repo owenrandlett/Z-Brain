@@ -1,3 +1,13 @@
+function MakeTheMAPMap
+close all
+clear all
+ncores = 4;
+ERKLabel = '*1_warp*';
+pERKLabel = '*3_warp*';
+nPermutes = 500;
+FDRThresh = 0.00005; %
+UsingERK = 0;
+
 % This function will create the MAP-Map whole-brain activity map from
 % registered pERK/tERK data by performing differential intensity analysis
 % at each voxel.
@@ -143,15 +153,7 @@
 %
 %---------------------------------------------
 
-function MakeTheMAPMap
-close all
-clear all
-ncores = 6;
-ERKLabel = '*1_warp*';
-pERKLabel = '*3_warp*';
-nPermutes = 500;
-FDRThresh = 0.00005; %
-UsingERK = 1;
+
 
 disp(strcat('Running with the following settings: ncores = ', num2str(ncores), ' ERKLabel = ', num2str(ERKLabel), ' pERKLabel = ', num2str(pERKLabel), ' nPermutes = ', num2str(nPermutes), ' FDRThresh = ', num2str(FDRThresh), 'UsingERK = ', num2str(UsingERK)))
 
@@ -175,7 +177,7 @@ end
 
 
 
-ParObject = parpool; % open up the parallel workers
+ParObject = parpool(ncores); % open up the parallel workers
 
 
 
