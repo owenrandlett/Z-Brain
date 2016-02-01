@@ -19,20 +19,20 @@ ZBrainViewer.m
 - Contained in this github repository.
 
 Anatomy Label Database
-- http://engertlab.fas.harvard.edu/Z-Brain/Downloads/AnatomyLabelDatabase.hdf5
+- http://engertlab.fas.harvard.edu/zDownloads/AnatomyLabelDatabase.hdf5
 - This is an image file that contains the stacks of the labels (transgenes, antibody stains, etc). Each stack is a mean across multiple fish. It is an HDF5 file, and so can also be loaded into different viewing programs. The resultion of the data is x/y/z = 0.798/0.798/2um. 
 
 Warning: file size is very large (~4.5gb).
 
 
 Mask Database
-- http://engertlab.fas.harvard.edu/Z-Brain/Downloads/MaskDatabase.mat
+- http://engertlab.fas.harvard.edu/zDownloads/MaskDatabase.mat
 - This is the file that contains the regional definitions. It is compressed a Matlab file. If you would like the regions in an image format, please contact me.
 Download these three files and put them in your Matlab path. Then run the ‘ZBrainViewer’ function.
 
 MAP-Mapping
 
-In order to create MAP-Maps from pERK and tERK stained data, data must first be registered to the Z-Brain reference brain stack (http://engertlab.fas.harvard.edu/Z-Brain/Downloads/Ref20131120pt14pl2.nrrd). To do this we use CMTK (https://www.nitrc.org/projects/cmtk/).
+In order to create MAP-Maps from pERK and tERK stained data, data must first be registered to the Z-Brain reference brain stack (http://engertlab.fas.harvard.edu/zDownloads/Ref20131120pt14pl2.nrrd). To do this we use CMTK (https://www.nitrc.org/projects/cmtk/).
 
 Once the data is registered, you can use the 'MakeTheMAPMap.m' function to create the activity map. Then the 'ZBrainAnalysisOfMAPMaps.m' function can be used to analyze MAP-Maps using the Z-Brain. 
 

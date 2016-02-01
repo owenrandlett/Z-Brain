@@ -1,12 +1,12 @@
 function MakeTheMAPMap
 close all
 clear all
-ncores = 4;
+ncores = 3;
 ERKLabel = '*1_warp*';
 pERKLabel = '*3_warp*';
 nPermutes = 500;
 FDRThresh = 0.00005; %
-UsingERK = 0;
+UsingERK = 1;
 
 % This function will create the MAP-Map whole-brain activity map from
 % registered pERK/tERK data by performing differential intensity analysis

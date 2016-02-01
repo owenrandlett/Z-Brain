@@ -1,4 +1,4 @@
-// this simple script asks you to point to an input folder. This must contain the .nrrd jacobian determinant stacks output from the CMTK. It will ask you for an output folder, where the downsampled and smoothed Tiff stacks will be output. These are then processed in Matlab to creat MAP-Maps. 
+// this simple script asks you to point to an input folder. This must contain the .nrrd warped/registered stacks output from the CMTK. It will ask you for an output folder, where the downsampled and smoothed Tiff stacks will be output. These are then processed in Matlab to creat MAP-Maps. 
 
 max = 65535; // set the max value of the images here - either 65535 for uint16, or 4096 if uint12 mapped
 min = 0; // set the min value for the images here.
