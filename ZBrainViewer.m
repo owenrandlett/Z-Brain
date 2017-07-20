@@ -73,7 +73,7 @@ function ZBrainViewer(ViewerMode, InitialGreyStackNo, SectDim)
 % The 'MaskDatabse' variable in the MaskDatabase.mat file contains the
 % regional mask definitions. These are stored as 2D sparse logical arrays,
 % where each column is a regional mask. These can be reconstructed using
-% reshape(full(MaskDatabase(x,:)), [height, width, Zs]), where height, width, Zs
+% reshape(full(MaskDatabase(:,x)), [height, width, Zs]), where height, width, Zs
 % is the native the image size (1406, 621, 138). 'MaskDatabaseNames' lists
 % the names of the regions. Once reconstructed these could similarly be
 % exported as image stacks.
