@@ -1,7 +1,7 @@
 function MakeTheMAPMap
 close all
 clear all
-ncores = 3;
+ncores = 4;
 ERKLabel = '*1_warp*';
 pERKLabel = '*3_warp*';
 nPermutes = 500;
@@ -623,9 +623,12 @@ end
 % Write the median stack to file.
 
 
-if UsingERK == 0; % if raw averages these should be 8 bit, if pERK/ERK+pERK analysis, they will already be from 0 to 1.
+if UsingERK == 0; % if raw averages these should be 8 bit, if pERK/ERK analysis, normalize to 10.
     Amedian = uint8(Amedian);
     Bmedian = uint8(Bmedian);
+else
+    Amedian = uint16(Amedian.*65535/10);
+    Bmedian = uint16(Bmedian.*65535/10);
 end
 
 if length(dir(strcat(GrA, '_medianStack.tif'))) < 1 % check to make sure we havent already written this file
@@ -673,12 +676,12 @@ end
 % Write the std stack to file.
 
 
-if UsingERK == 0; % if raw averages these should be 8 bit, if pERK/ERK+pERK analysis, they will already be from 0 to 1.
+if UsingERK == 0; % if raw averages these should be 8 bit, if pERK/ERK analysis, normalize to 10.
     AStd = uint8(AStd);
     BStd = uint8(BStd);
 elseif UsingERK == 1;
-    AStd = uint16(AStd.*65535);
-    BStd = uint16(BStd.*65535);
+    AStd = uint16(AStd.*65535/10);
+    BStd = uint16(BStd.*65535/10);
 end
 
 if length(dir(strcat(GrA, '_StdStack.tif'))) < 1 % check to make sure we havent already written this file
@@ -2360,7 +2363,7 @@ function percent = parfor_progress(N)
 
 % By Jeremy Scheff - jdscheff@gmail.com - http://www.jeremyscheff.com/
 
-error(nargchk(0, 1, nargin, 'struct'));
+narginchk(0, 1);
 
 if nargin < 1
     N = -1;
